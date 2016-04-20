@@ -1,0 +1,3 @@
+[Chair]
+Baud = 115200
+Name = "/dev/ttyACM0"
