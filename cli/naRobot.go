@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/alfandersen/naRobot"
+	"github.com/ArT-Programming/naRobot"
 	"github.com/tarm/serial"
 	"log"
 	"os"
