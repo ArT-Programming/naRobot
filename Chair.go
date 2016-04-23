@@ -13,9 +13,11 @@ import (
 type Chair struct {
 	devicePath                            string
 	device                                *serial.Port
+	sensor                                *serial.Port
 	x, y                                  int8
 	pendingCommand, battery, speed, error uint8
 	chairMsgs                             chan ChairResponse
+	sensorMsgs                            chan SensorData
 	cntr                                  uint64
 	naServer                             *NAServer
 }
@@ -38,21 +40,33 @@ type chairData struct {
 	crc     uint8
 }
 
+type SensorData struct {
+	pos	uint8
+	dist	uint8
+}
+
 func (d *ChairResponse) bytes() []byte {
 	bytes := []byte{d.typ, d.error, d.unknown2, d.battery, d.speed, d.crc}
 	return bytes
 }
 
-func InitChair(c *serial.Config) Chair {
+func InitChair(c *serial.Config , s *serial.Config) Chair {
 	log.Printf("Chair with path: %s", c.Name)
+	log.Printf("Sensor with path: %s", s.Name)
 
-	s, err := serial.OpenPort(c)
-
+	chairSerial, err := serial.OpenPort(c)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	
+	sensorSerial, err := serial.OpenPort(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	naServer := InitNAServer()
-	chair := Chair{devicePath: c.Name, device: s, chairMsgs: make(chan ChairResponse), naServer: &naServer}
+	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer}
 
 	return chair
 }
@@ -60,10 +74,16 @@ func InitChair(c *serial.Config) Chair {
 func (c *Chair) Loop() {
 
 	go c.readLoop()
+	
+	senData := make(chan SensorData)
+	
+	go c.sensorRead(senData)
 
 	netEventChan := make(chan NANetEvent)
 
 	go c.naServer.readLoop(netEventChan)
+
+
 
 	ticker := time.Tick(10 * time.Millisecond)
 
@@ -77,6 +97,9 @@ func (c *Chair) Loop() {
 			if c.cntr%5 == 1 {
 				c.naServer.send(&cRes)
 			}
+		case readSenData := <- senData:
+			//fmt.Print("Now i'm done with channeling, func go!")
+			handleSensorData(&readSenData)
 		case nEvent := <-netEventChan:
 			c.handleNetEvent(&nEvent)
 		case <-ticker:
@@ -84,6 +107,49 @@ func (c *Chair) Loop() {
 			c.sendData()
 			c.formatCliLine(start)
 		}
+	}
+}
+
+func handleSensorData(data *SensorData) {
+	fmt.Printf("\rP:%d D:%d  ", data.pos, data.dist)
+}
+
+func (c *Chair) sensorRead(d chan SensorData) {
+
+	input := make([]byte, 3, 3)
+	startByte := make([]byte, 1, 1)
+	for {
+
+		//Wait for the start byte, its 255 (0xff)
+		for {
+			c.sensor.Read(startByte)
+			//fmt.Println(startByte[0])
+			if startByte[0] == 255 {
+				break
+			}
+		}
+
+		_, err := io.ReadAtLeast(c.sensor, input, 2)
+
+		if err != nil {
+			log.Fatal("Problem reading sensor:", err)
+		}
+/*
+		byteReader := bytes.NewReader(input)
+
+		senData := SensorData{}
+
+		binary.Read(byteReader, binary.LittleEndian, &senData.pos)
+		err = binary.Read(byteReader, binary.LittleEndian, &senData.dist)
+
+		if err != nil {
+			log.Fatal("binary.Read failed:", err)
+		}
+*/
+		senData := SensorData{pos: input[0] , dist: input[1]}
+		//log.Printf("Sensor said: %v", senData)
+
+		d <- senData
 	}
 }
 
@@ -119,8 +185,8 @@ func calculateCheckSum(b []byte) byte {
 }
 
 func (c *Chair) formatCliLine(start time.Time) {
-	elapsed := time.Since(start)
-	fmt.Printf("\rE:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
+	//elapsed := time.Since(start)
+	//fmt.Printf("\rE:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {

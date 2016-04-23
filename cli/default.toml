@@ -1,3 +1,7 @@
 [Chair]
 Baud = 115200
 Name = "/dev/ttyACM0"
+
+[Sensor]
+Baud = 9600
+Name = "/dev/ttyACM1"

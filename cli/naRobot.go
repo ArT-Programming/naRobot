@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/alfandersen/naRobot"
+	"github.com/ArT-Programming/naRobot"
 	"github.com/tarm/serial"
 	"log"
 	"os"
@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Chair    serial.Config
+	Sensor	 serial.Config
 }
 
 func main() {
@@ -31,7 +32,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	chair := naRobot.InitChair(&config.Chair)
+	chair := naRobot.InitChair(&config.Chair , &config.Sensor)
+	
 
 	chair.Loop()
 

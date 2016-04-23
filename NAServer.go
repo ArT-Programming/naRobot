@@ -66,7 +66,7 @@ func (nas *NAServer) readLoop(c chan NANetEvent) {
 			log.Fatal("binary.Read failed:", err)
 		}
 
-		log.Print("I has a net event: %+v", event)
+		//log.Print("I has a net event: %+v", event)
 
 		c <- *event
 	}
