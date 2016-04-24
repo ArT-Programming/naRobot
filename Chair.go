@@ -17,7 +17,7 @@ type Chair struct {
 	x, y                                  int8
 	pendingCommand, battery, speed, error uint8
 	chairMsgs                             chan ChairResponse
-	sensorMsgs                            chan SensorData
+	sensorData                            SensorData
 	cntr                                  uint64
 	naServer                             *NAServer
 }
@@ -99,7 +99,7 @@ func (c *Chair) Loop() {
 			}
 		case readSenData := <- senData:
 			//fmt.Print("Now i'm done with channeling, func go!")
-			handleSensorData(&readSenData)
+			c.handleSensorData(&readSenData)
 		case nEvent := <-netEventChan:
 			c.handleNetEvent(&nEvent)
 		case <-ticker:
@@ -110,8 +110,10 @@ func (c *Chair) Loop() {
 	}
 }
 
-func handleSensorData(data *SensorData) {
-	fmt.Printf("\rP:%d D:%d  ", data.pos, data.dist)
+func (c *Chair) handleSensorData(data *SensorData) {
+	c.sensorData.pos = data.pos;
+	c.sensorData.dist = data.dist;
+	fmt.Printf("\rP:%d D:%d  ", c.sensorData.pos, c.sensorData.dist)
 }
 
 func (c *Chair) sensorRead(d chan SensorData) {
@@ -186,7 +188,7 @@ func calculateCheckSum(b []byte) byte {
 
 func (c *Chair) formatCliLine(start time.Time) {
 	//elapsed := time.Since(start)
-	//fmt.Printf("\rE:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
+	//fmt.Printf("\rP:%d D:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.pos, c.sensorData.dist, c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {
