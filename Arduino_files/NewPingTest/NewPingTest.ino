@@ -46,9 +46,18 @@ void loop() {
   // Other code that *DOESN'T* analyze ping results can go here.
 }
 
-void sendData(int s1, int s2, int s3){
-  byte buf[4] = {255, s1, s2, s3};
-  Serial.write(buf, 4);
+void sendData(int s1, int s2, int s3) {
+  byte buf[5] = {255, s1, s2, s3, 0};
+  buf[4] = calculateCHKSum(buf);
+  Serial.write(buf, 5);
+}
+
+byte calculateCHKSum(byte buf[]) {
+  byte chk = 0;
+  for (int i = 1; i < sizeof(buf); i++) {
+    chk += buf[i];
+  }
+  return chk;
 }
 
 void echoCheck() { // If ping received, set the sensor distance to array.
