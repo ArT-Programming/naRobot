@@ -41,8 +41,7 @@ type chairData struct {
 }
 
 type SensorData struct {
-	pos	uint8
-	dist	uint8
+	dist	[]uint8
 }
 
 func (d *ChairResponse) bytes() []byte {
@@ -111,12 +110,12 @@ func (c *Chair) Loop() {
 }
 
 func (c *Chair) handleSensorData(data *SensorData) {
-	c.sensorData.pos = data.pos
 	c.sensorData.dist = data.dist
-	//fmt.Printf("\rP:%d D:%d  ", c.sensorData.pos, c.sensorData.dist)
-	b := make([]byte, 2, 2)
-	b[0] = c.sensorData.pos
-	b[1] = c.sensorData.dist
+	
+	b := make([]byte, 3, 3)
+	b[0] = c.sensorData.dist[0]
+	b[1] = c.sensorData.dist[1]
+	b[2] = c.sensorData.dist[2]
 	c.naServer.conn.Write(b)
 }
 
@@ -135,7 +134,7 @@ func (c *Chair) sensorRead(d chan SensorData) {
 			}
 		}
 
-		_, err := io.ReadAtLeast(c.sensor, input, 2)
+		_, err := io.ReadAtLeast(c.sensor, input, 3)
 
 		if err != nil {
 			log.Fatal("Problem reading sensor:", err)
@@ -152,7 +151,7 @@ func (c *Chair) sensorRead(d chan SensorData) {
 			log.Fatal("binary.Read failed:", err)
 		}
 */
-		senData := SensorData{pos: input[0] , dist: input[1]}
+		senData := SensorData{dist: input}
 		//log.Printf("Sensor said: %v", senData)
 
 		d <- senData
@@ -192,7 +191,7 @@ func calculateCheckSum(b []byte) byte {
 
 func (c *Chair) formatCliLine(start time.Time) {
 	elapsed := time.Since(start)
-	fmt.Printf("\rP:%d D:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.pos, c.sensorData.dist, c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
+	fmt.Printf("\r1:%d 2:%d 3:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {
