@@ -41,7 +41,7 @@ type chairData struct {
 }
 
 type SensorData struct {
-	dist	make([]uint8,3,3)
+	dist	[]uint8
 }
 
 func (d *ChairResponse) bytes() []byte {
@@ -66,7 +66,7 @@ func InitChair(c *serial.Config , s *serial.Config) Chair {
 
 	naServer := InitNAServer()
 	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer}
-
+	chair.sensorData.dist := make([]uint8,3,3)
 	return chair
 }
 
