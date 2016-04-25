@@ -111,9 +111,13 @@ func (c *Chair) Loop() {
 }
 
 func (c *Chair) handleSensorData(data *SensorData) {
-	c.sensorData.pos = data.pos;
-	c.sensorData.dist = data.dist;
-	fmt.Printf("\rP:%d D:%d  ", c.sensorData.pos, c.sensorData.dist)
+	c.sensorData.pos = data.pos
+	c.sensorData.dist = data.dist
+	//fmt.Printf("\rP:%d D:%d  ", c.sensorData.pos, c.sensorData.dist)
+	b := make([]byte, 2, 2)
+	b[0] = c.sensorData.pos
+	b[1] = c.sensorData.dist
+	c.naServer.conn.Write(b)
 }
 
 func (c *Chair) sensorRead(d chan SensorData) {
@@ -187,8 +191,8 @@ func calculateCheckSum(b []byte) byte {
 }
 
 func (c *Chair) formatCliLine(start time.Time) {
-	//elapsed := time.Since(start)
-	//fmt.Printf("\rP:%d D:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.pos, c.sensorData.dist, c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
+	elapsed := time.Since(start)
+	fmt.Printf("\rP:%d D:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.pos, c.sensorData.dist, c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {
