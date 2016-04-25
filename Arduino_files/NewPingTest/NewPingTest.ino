@@ -48,13 +48,21 @@ void loop() {
 
 void sendData(int s1, int s2, int s3) {
   byte buf[5] = {255, s1, s2, s3, 0};
-  buf[4] = calculateCHKSum(buf);
+  buf[4] = calculateCHKSum(buf, 5);
+  /*for(int i = 0; i < sizeof(buf); i++){
+  Serial.print(i);
+  Serial.print(":   ");
+  Serial.print(buf[i]);
+  Serial.print(" ");
+  }
+  Serial.println();*/
   Serial.write(buf, 5);
+
 }
 
-byte calculateCHKSum(byte buf[]) {
+byte calculateCHKSum(byte buf[], int len) {
   byte chk = 0;
-  for (int i = 1; i < sizeof(buf); i++) {
+  for (int i = 1; i < len - 1; i++) {
     chk += buf[i];
   }
   return chk;
