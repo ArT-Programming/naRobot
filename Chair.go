@@ -41,7 +41,7 @@ type chairData struct {
 }
 
 type SensorData struct {
-	dist	[]uint8
+	dist	make([]uint8,3,3)
 }
 
 func (d *ChairResponse) bytes() []byte {
@@ -151,7 +151,7 @@ func (c *Chair) sensorRead(d chan SensorData) {
 			log.Fatal("binary.Read failed:", err)
 		}
 */
-		senData := SensorData{dist: input}
+		senData := SensorData{dist[0]: input[0], dist[1]: input[1], dist[2]: input[2]}
 		//log.Printf("Sensor said: %v", senData)
 
 		d <- senData
