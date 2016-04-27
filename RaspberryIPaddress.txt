@@ -1,0 +1,7 @@
+Connection over NArouter
+
+Thomas raspberry: ssh 192.168.0.199 -l pi 
+
+RaspberryPi 3: ssh 192.168.0.198 -l pi 
+
+RaspberryPi 1 model B+: 
