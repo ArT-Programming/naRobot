@@ -66,7 +66,7 @@ func InitChair(c *serial.Config , s *serial.Config) Chair {
 
 	naServer := InitNAServer()
 	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer}
-	chair.sensorData.dist := make([]uint8,3,3)
+	chair.sensorData.dist = make([]uint8,3,3)
 	return chair
 }
 
@@ -121,7 +121,7 @@ func (c *Chair) handleSensorData(data *SensorData) {
 
 func (c *Chair) sensorRead(d chan SensorData) {
 
-	input := make([]byte, 3, 3)
+	input := make([]byte, 4, 4)
 	startByte := make([]byte, 1, 1)
 	for {
 
@@ -134,27 +134,26 @@ func (c *Chair) sensorRead(d chan SensorData) {
 			}
 		}
 
-		_, err := io.ReadAtLeast(c.sensor, input, 3)
+		_, err := io.ReadAtLeast(c.sensor, input, 4)
 
 		if err != nil {
 			log.Fatal("Problem reading sensor:", err)
 		}
-/*
-		byteReader := bytes.NewReader(input)
 
-		senData := SensorData{}
+		calcSum := byte(0)
 
-		binary.Read(byteReader, binary.LittleEndian, &senData.pos)
-		err = binary.Read(byteReader, binary.LittleEndian, &senData.dist)
-
-		if err != nil {
-			log.Fatal("binary.Read failed:", err)
+		for i := 0; i < 3; i++ {
+			calcSum = calcSum + input[i]
 		}
-*/
-		senData := SensorData{dist[0]: input[0], dist[1]: input[1], dist[2]: input[2]}
-		//log.Printf("Sensor said: %v", senData)
+		//fmt.Println(input)
 
-		d <- senData
+		if calcSum == input[3] {
+			values := input[:3]
+			senData := SensorData{dist: values}//, dist[1]: input[1], dist[2]: input[2]}
+			//log.Printf("Sensor said: %v", senData)
+
+			d <- senData
+		}
 	}
 }
 
@@ -191,7 +190,7 @@ func calculateCheckSum(b []byte) byte {
 
 func (c *Chair) formatCliLine(start time.Time) {
 	elapsed := time.Since(start)
-	fmt.Printf("\r1:%d 2:%d 3:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
+	fmt.Printf("\rS1:%d S2:%d S3:%d E:%d B:%d S:%d Y:%d X:%d C:%d elpsd: %v      ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {

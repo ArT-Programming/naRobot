@@ -17,7 +17,7 @@ type NANetEvent struct {
 
 func InitNAServer() NAServer {
 	RemoteIP := "192.168.0.100:8080"
-	ListenIP := "192.168.0.198:8080"
+	ListenIP := "192.168.0.199:8080"
 	
 	log.Printf("Opening UDP connection...")
 
