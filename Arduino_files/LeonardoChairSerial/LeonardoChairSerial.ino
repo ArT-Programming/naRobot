@@ -2,7 +2,7 @@
 
 int frame[9];
 
-SoftwareSerial ServoPort(10, 11);
+SoftwareSerial ServoPort(10, 11); //Rx & Tx
 
 unsigned long timeToDo = 0;
 unsigned long timeout = 0;
@@ -35,8 +35,6 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }
   enable();
-
-
 }
 
 void disable() {
@@ -58,16 +56,20 @@ void loop() // run over and over
     frame[5] = Serial.read();
     frame[6] = Serial.read();
     frame[7] = Serial.read();
+
     timeout = millis() + 1000;
     timedOut = false;
+
+
+    //send servo coordinates
+    byte servoPacket[3] = {startbyte, frame[6], frame[7]};
+    //ServoPort.write(servoPacket[], 3);
+    for (int i = 0; i < 3; i++) {
+      ServoPort.write(servoPacket[i]);
+    }
   }
-  //send servo coordinates
-  byte servoPacket[3] = {startbyte, frame[6], frame[7]};
-  //ServoPort.write(servoPacket[], 3);
-  for(int i = 0; i < 3; i++){
-    ServoPort.write(servoPacket[i]);
-  }
-  
+
+
   if ( millis() >= timeout) {
     timedOut = true;
   }
