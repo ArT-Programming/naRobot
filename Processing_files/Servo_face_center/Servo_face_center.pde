@@ -19,7 +19,7 @@ void setup() {
   val[1] = 40;
 
   String portName = Serial.list()[0];
-  myPort = new Serial(this, portName, 9600);
+  myPort = new Serial(this, portName, 115200);
   printArray(Serial.list());
 
   size(640, 480);

@@ -15,6 +15,7 @@ type Chair struct {
 	device                                *serial.Port
 	sensor                                *serial.Port
 	x, y                                  int8
+	servoX, servoY						  uint8
 	pendingCommand, battery, speed, error uint8
 	chairMsgs                             chan ChairResponse
 	sensorData                            SensorData
@@ -31,12 +32,14 @@ type ChairResponse struct {
 	crc      uint8
 }
 
-type chairData struct {
+type serialOutData struct {
 	typ     uint8
 	command uint8
 	unknown uint8
 	y       int8
 	x       int8
+	servoX	uint8
+	servoY	uint8
 	crc     uint8
 }
 
@@ -160,11 +163,13 @@ func (c *Chair) sensorRead(d chan SensorData) {
 func (c *Chair) handleNetEvent(e *NANetEvent) {
 	c.y = e.y
 	c.x = e.x
+	c.servoX = e.servoX
+	c.servoY = e.servoY
 }
 
 func (c *Chair) sendData() {
 	c.cntr++
-	payLoad := chairData{typ: 74, command: c.pendingCommand, y: c.y, x: c.x}
+	payLoad := serialOutData{typ: 74, command: c.pendingCommand, y: c.y, x: c.x, servoX: c.servoX, servoY: c.servoY}
 
 	//reset the command
 	c.pendingCommand = 0
@@ -172,9 +177,9 @@ func (c *Chair) sendData() {
 	c.device.Write(payLoad.bytes())
 }
 
-func (d *chairData) bytes() []byte {
-	bytes := []byte{d.typ, d.command, d.unknown, byte(d.x), byte(d.y), 0}
-	bytes[5] = calculateCheckSum(bytes)
+func (d *serialOutData) bytes() []byte {
+	bytes := []byte{d.typ, d.command, d.unknown, byte(d.x), byte(d.y), d.servoX, d.servoY, 0}
+	bytes[7] = calculateCheckSum(bytes)
 	return bytes
 }
 
