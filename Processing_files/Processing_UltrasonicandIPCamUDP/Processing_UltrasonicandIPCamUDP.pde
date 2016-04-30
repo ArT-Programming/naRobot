@@ -9,7 +9,7 @@ OpenCV opencv;
 
 String remoteIP = "192.168.0.199"; //Hardcoded FTW!
 int remotePort = 8080;
-boolean remoteFound = true; // only send to remote if we know where to send it to
+boolean remoteFound = false; // only send to remote if we know where to send it to
 
 int listenPort = 8080;
 
@@ -51,7 +51,7 @@ void setup() {
   // create a new datagram connection on port 6000
   // and wait for incomming message
   println("Setting up UDP listener on Port ", listenPort);
-  println("Sending to ", remoteIP, ":", remotePort);
+  //println("Sending to ", remoteIP, ":", remotePort);
   udp = new UDP( this, listenPort );
   udp.listen( true );
 

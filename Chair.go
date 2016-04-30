@@ -38,9 +38,9 @@ type serialOutData struct {
 	unknown uint8
 	y       int8
 	x       int8
+	crc     uint8
 	servoX	uint8
 	servoY	uint8
-	crc     uint8
 }
 
 type SensorData struct {
@@ -178,8 +178,8 @@ func (c *Chair) sendData() {
 }
 
 func (d *serialOutData) bytes() []byte {
-	bytes := []byte{d.typ, d.command, d.unknown, byte(d.x), byte(d.y), d.servoX, d.servoY, 0}
-	bytes[7] = calculateCheckSum(bytes)
+	bytes := []byte{d.typ, d.command, d.unknown, byte(d.x), byte(d.y), 0, d.servoX, d.servoY}
+	bytes[5] = calculateCheckSum(bytes)
 	return bytes
 }
 
@@ -195,7 +195,7 @@ func calculateCheckSum(b []byte) byte {
 
 func (c *Chair) formatCliLine(start time.Time) {
 	elapsed := time.Since(start)
-	fmt.Printf("\rS1:%d S2:%d S3:%d E:%d B:%d S:%d Y:%d X:%d Sx:%d Sy:%d C:%d elpsd: %v      ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.servoX, c.servoY, c.cntr, elapsed)
+	fmt.Printf("\rS1:%d S2:%d S3:%d E:%d B:%d S:%d Y:%d X:%d Sx:%d Sy:%d C:%d elpsd: %v", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.servoX, c.servoY, c.cntr, elapsed)
 }
 
 func (c *Chair) readLoop() {
