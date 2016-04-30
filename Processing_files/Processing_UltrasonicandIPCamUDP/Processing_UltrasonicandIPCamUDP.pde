@@ -28,7 +28,17 @@ int distanceArray[][] = new int[3][3];
 int distanceThreshold = 100;
 int currentReading = 0;
 
+static final int servos = 2;
+int servoVal[] = new int[servos];
+int threshold = 30;
+int speed = 2;
+color red = color(255, 0, 0, 100);
+color green = color(0, 255, 0, 100);
+
 void setup() {
+  servoVal[0] = 90;
+  servoVal[1] = 40;
+  
   // create window and setup a simple coordinate system
   size(500, 500);
   
@@ -56,11 +66,34 @@ void draw() {
   opencv.loadImage(cam);
   Rectangle[] faces = opencv.detect();
   
+  float faceDist[] = new float[faces.length];
+  PVector distVector[] = new PVector[faces.length];
+  for (int i = 0; i < faces.length; i++) {
+    PVector faceCenter = new PVector(faces[i].x+(faces[i].width/2), faces[i].y+(faces[i].height/2));
+    distVector[i] = new PVector(faceCenter.x - 320/2, faceCenter.y - 240/2);
+    faceDist[i] = distVector[i].magSq();
+  }
+
+  int smallIndex = 0;
+  for (int i = 0; i < faces.length; i++) {
+    if (faceDist[i] < faceDist[smallIndex]) {
+      smallIndex = i;
+    }
+  }
+  
   image(cam,0,0);
   stroke(255);
   strokeWeight(3);
   for (int i = 0; i < faces.length; i++) {
     rectMode(CORNER);
+    if (i == smallIndex) {
+      fill(green);
+      //println(distVector[i]);
+      calcServoValues(distVector[i]);
+      //sendServoValues();
+    } else {
+      fill(red);
+    }
     rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
   }
   
@@ -104,6 +137,28 @@ void mouseReleased() {
 
 void keyPressed() {
   doRampage = !doRampage;
+}
+
+void calcServoValues(PVector distVector) {
+  if(distVector.x < -threshold){
+    servoVal[0] += speed;
+  }else if(distVector.x > threshold){
+    servoVal[0] -= speed;
+  }
+  servoVal[0] = clipValue(servoVal[0],30,150);
+  
+  if(distVector.y < -threshold){
+    servoVal[1] += speed;
+  }else if(distVector.y > threshold){
+    servoVal[1] -= speed;
+  }
+  servoVal[1] = clipValue(servoVal[1],10,90);
+}
+
+int clipValue(int input, int min, int max){
+  if(input < min) return min;
+  if(input > max) return max;
+  return input;
 }
 
 // map mouse values between -100 and 100
@@ -177,7 +232,9 @@ void drawCoordinateSystem(){
 // send values as byte array via udp to the remote ip and port
 void sendData() {
   lastSend = millis();
-  udp.send( val, remoteIP, remotePort );
+  byte[] b = {val[0], val[1], byte(servoVal[0]), byte(servoVal[1])};
+  //println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
+  udp.send( b, remoteIP, remotePort );
 }
 
 // this port recieved data from ip with port
