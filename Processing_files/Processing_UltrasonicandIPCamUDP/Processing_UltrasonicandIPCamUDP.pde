@@ -27,11 +27,12 @@ int medianDistance[] = new int[3];
 int distanceArray[][] = new int[3][3];
 int distanceThreshold = 100;
 int currentReading = 0;
+long lastFaceTime = 0;
 
 static final int servos = 2;
 int servoVal[] = new int[servos];
 int threshold = 30;
-int speed = 2;
+int speed = 1;
 color red = color(255, 0, 0, 100);
 color green = color(0, 255, 0, 100);
 
@@ -45,7 +46,7 @@ void setup() {
   cam = new IPCapture(this, "http://192.168.0.151:8080/video", "", "");
   cam.start();
   
-  opencv = new OpenCV(this, 320,240);
+  opencv = new OpenCV(this, 320, 240);
   opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
   
   // create a new datagram connection on port 6000
@@ -102,9 +103,15 @@ void draw() {
   
   if (remoteFound) {
     if(doRampage && (faces.length > 0 || doSpin)){
-      doSpin = spin();
+      //doSpin = spin();
+      lastFaceTime = millis();
+      val[0] = 0;
+      val[1] = 0;
     }
     else if (doRampage) {
+      if(millis() > lastFaceTime + 1000){
+        servoGoTo(90,40);
+      }
       rampage();
     } 
     else if (mousePressed) {
@@ -119,6 +126,22 @@ void draw() {
       sendData();
     }
   }
+}
+
+void servoGoTo(int x, int y){
+  if(servoVal[0] < x){
+    servoVal[0] += speed;
+  }else if(servoVal[0] > x){
+    servoVal[0] -= speed;
+  }
+  servoVal[0] = clipValue(servoVal[0],30,150);
+  
+  if(servoVal[1] < y){
+    servoVal[1] += speed;
+  }else if(servoVal[1] > y){
+    servoVal[1] -= speed;
+  }
+  servoVal[1] = clipValue(servoVal[1],10,90);
 }
 
 // send zero when program exits
@@ -190,7 +213,7 @@ void randomDirection(){
 }
 
 void rampage() {
-  val[0] = -70;
+  val[0] = -50;
   val[1] = 0;
   for (int i = 0; i < medianDistance.length; i++) {
     if (medianDistance[i] != 0 && medianDistance[i] < distanceThreshold) {
@@ -233,7 +256,7 @@ void drawCoordinateSystem(){
 void sendData() {
   lastSend = millis();
   byte[] b = {val[0], val[1], byte(servoVal[0]), byte(servoVal[1])};
-  //println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
+  println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
   udp.send( b, remoteIP, remotePort );
 }
 
