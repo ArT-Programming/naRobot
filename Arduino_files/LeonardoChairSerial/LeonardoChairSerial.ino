@@ -7,6 +7,8 @@ SoftwareSerial ServoPort(10, 11);
 unsigned long timeToDo = 0;
 unsigned long timeout = 0;
 boolean timedOut = true;
+byte startbyte = 0xFF;
+
 void setup()
 {
   // Chair commands
@@ -60,10 +62,12 @@ void loop() // run over and over
     timedOut = false;
   }
   //send servo coordinates
-  for (int i = 6; i < 8; i++) {
-    ServoPort.write(frame[i]);
+  byte servoPacket[3] = {startbyte, frame[6], frame[7]};
+  //ServoPort.write(servoPacket[], 3);
+  for(int i = 0; i < 3; i++){
+    ServoPort.write(servoPacket[i]);
   }
-
+  
   if ( millis() >= timeout) {
     timedOut = true;
   }
