@@ -1,10 +1,9 @@
 #include <Servo.h>
-//#include <SoftwareSerial.h>
+
 static const int n = 2; //number of servo motors
 Servo servo[n];  // create servo object to control a servo
-//SoftwareSerial servoData(10,11);
-void setup()
-{
+
+void setup(){
   servo[0].attach(3);
   servo[1].attach(5);
   
@@ -13,7 +12,6 @@ void setup()
   delay(1000);
   
   Serial.begin(9600);
- // servoData.begin(9600);
 }
 
 void loop(){
@@ -25,7 +23,6 @@ void loop(){
       
       value[0] = Serial.read();
       value[1] = Serial.read();
-
     
       servo[0].write(value[0]);
       servo[1].write(value[1]);
