@@ -23,10 +23,11 @@ boolean doRampage = false;
 int spinDirection = 1;
 long lastDirectionTime = 0;
 
+static final int medianCount = 3;
 static final int sensorCount = 5;
 int medianDistance[] = new int[sensorCount];
-int distanceArray[][] = new int[sensorCount][3];
-int distanceThreshold = 100;
+int distanceArray[][] = new int[sensorCount][medianCount];
+int distanceThreshold = 120;
 int currentReading = 0;
 long lastFaceTime = 0;
 
@@ -36,6 +37,8 @@ int threshold = 30;
 int speed = 1;
 color red = color(255, 0, 0, 100);
 color green = color(0, 255, 0, 100);
+
+byte rampageSpeed = -70;
 
 void setup() {
   servoVal[0] = 90;
@@ -214,7 +217,7 @@ void randomDirection(){
 }
 
 void rampage() {
-  val[0] = -50;
+  val[0] = rampageSpeed;
   val[1] = 0;
   for (int i = 0; i < medianDistance.length; i++) {
     if (medianDistance[i] != 0 && medianDistance[i] < distanceThreshold) {
@@ -257,7 +260,7 @@ void drawCoordinateSystem(){
 void sendData() {
   lastSend = millis();
   byte[] b = {val[0], val[1], byte(servoVal[0]), byte(servoVal[1])};
-  println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
+  //println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
   udp.send( b, remoteIP, remotePort );
 }
 
@@ -277,7 +280,7 @@ void receive( byte[] data, String ip, int port ) {	// <-- extended handler ... v
     }
   }
   currentReading++;
-  currentReading = currentReading % sensorCount;
+  currentReading = currentReading % medianCount;
 
   lastRecieved = millis();
 }
