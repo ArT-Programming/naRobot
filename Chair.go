@@ -69,7 +69,7 @@ func InitChair(c *serial.Config , s *serial.Config) Chair {
 
 	naServer := InitNAServer()
 	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer}
-	chair.sensorData.dist = make([]uint8,3,3)
+	chair.sensorData.dist = make([]uint8,5,5)
 	return chair
 }
 
@@ -115,16 +115,16 @@ func (c *Chair) Loop() {
 func (c *Chair) handleSensorData(data *SensorData) {
 	c.sensorData.dist = data.dist
 	
-	b := make([]byte, 3, 3)
-	b[0] = c.sensorData.dist[0]
-	b[1] = c.sensorData.dist[1]
-	b[2] = c.sensorData.dist[2]
+	b := make([]byte, 5, 5)
+	for i := 0; i < 5; i++ {
+		b[i] = c.sensorData.dist[i]
+	}
 	c.naServer.conn.Write(b)
 }
 
 func (c *Chair) sensorRead(d chan SensorData) {
 
-	input := make([]byte, 4, 4)
+	input := make([]byte, 6, 6)
 	startByte := make([]byte, 1, 1)
 	for {
 
@@ -137,7 +137,7 @@ func (c *Chair) sensorRead(d chan SensorData) {
 			}
 		}
 
-		_, err := io.ReadAtLeast(c.sensor, input, 4)
+		_, err := io.ReadAtLeast(c.sensor, input, 6)
 
 		if err != nil {
 			log.Fatal("Problem reading sensor:", err)
@@ -145,13 +145,13 @@ func (c *Chair) sensorRead(d chan SensorData) {
 
 		calcSum := byte(0)
 
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 5; i++ {
 			calcSum = calcSum + input[i]
 		}
 		//fmt.Println(input)
 
-		if calcSum == input[3] {
-			values := input[:3]
+		if calcSum == input[5] {
+			values := input[:5]
 			senData := SensorData{dist: values}//, dist[1]: input[1], dist[2]: input[2]}
 			//log.Printf("Sensor said: %v", senData)
 

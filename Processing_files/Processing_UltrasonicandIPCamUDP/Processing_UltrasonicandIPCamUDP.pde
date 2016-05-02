@@ -23,8 +23,9 @@ boolean doRampage = false;
 int spinDirection = 1;
 long lastDirectionTime = 0;
 
-int medianDistance[] = new int[3];
-int distanceArray[][] = new int[3][3];
+static final int sensorCount = 5;
+int medianDistance[] = new int[sensorCount];
+int distanceArray[][] = new int[sensorCount][3];
 int distanceThreshold = 100;
 int currentReading = 0;
 long lastFaceTime = 0;
@@ -276,7 +277,7 @@ void receive( byte[] data, String ip, int port ) {	// <-- extended handler ... v
     }
   }
   currentReading++;
-  currentReading = currentReading % 3;
+  currentReading = currentReading % sensorCount;
 
   lastRecieved = millis();
 }

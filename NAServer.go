@@ -26,7 +26,7 @@ func InitNAServer() NAServer {
 	if err != nil {
 		log.Println("RemoteAddr Error: ", err)
 	}
-	log.Printf("Sending to remote: 192.168.0.100:8080")
+	log.Printf("Sending to remote:" + RemoteIP)
 	
 	ListenAddr, err := net.ResolveUDPAddr("udp", ListenIP)
 	if err != nil {
