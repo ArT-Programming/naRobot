@@ -11,18 +11,22 @@
 // ---------------------------------------------------------------------------
 #include <NewPing.h>
 
-#define SONAR_NUM     3 // Number of sensors.
+#define SONAR_NUM     5 // Number of sensors.
 #define MAX_DISTANCE 200 // Maximum distance (in cm) to ping.
 #define PING_INTERVAL 33 // Milliseconds between sensor pings (29ms is about the min to avoid cross-sensor echo).
 
 unsigned long pingTimer[SONAR_NUM]; // Holds the times when the next ping should happen for each sensor.
+const int packetSize = SONAR_NUM + 2;
+
 unsigned int cm[SONAR_NUM];         // Where the ping distances are stored.
 uint8_t currentSensor = 0;          // Keeps track of which sensor is active.
 
 NewPing sonar[SONAR_NUM] = {     // Sensor object array.
   NewPing(2, 3, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping.
   NewPing(4, 5, MAX_DISTANCE),
-  NewPing(6, 7, MAX_DISTANCE)
+  NewPing(6, 7, MAX_DISTANCE),
+  NewPing(8, 9, MAX_DISTANCE),
+  NewPing(10, 11, MAX_DISTANCE)
 };
 
 void setup() {
@@ -36,7 +40,8 @@ void loop() {
   for (uint8_t i = 0; i < SONAR_NUM; i++) { // Loop through all the sensors.
     if (millis() >= pingTimer[i]) {         // Is it this sensor's time to ping?
       pingTimer[i] += PING_INTERVAL * SONAR_NUM;  // Set next time this sensor will be pinged.
-      if (i == 0 && currentSensor == SONAR_NUM - 1) sendData(cm[0], cm[1], cm[2]); // Sensor ping cycle complete, do something with the results.
+      if (i == 0 && currentSensor == SONAR_NUM - 1) sendData(cm[0], cm[1], cm[2], cm[3], cm[4]); //DebugSensors();  
+     // Sensor ping cycle complete, do something with the results.
       sonar[currentSensor].timer_stop();          // Make sure previous timer is canceled before starting a new ping (insurance).
       currentSensor = i;                          // Sensor being accessed.
       cm[currentSensor] = 0;                      // Make distance zero in case there's no ping echo for this sensor.
@@ -46,23 +51,15 @@ void loop() {
   // Other code that *DOESN'T* analyze ping results can go here.
 }
 
-void sendData(int s1, int s2, int s3) {
-  byte buf[5] = {255, s1, s2, s3, 0};
-  buf[4] = calculateCHKSum(buf, 5);
-  /*for(int i = 0; i < sizeof(buf); i++){
-  Serial.print(i);
-  Serial.print(":   ");
-  Serial.print(buf[i]);
-  Serial.print(" ");
-  }
-  Serial.println();*/
-  Serial.write(buf, 5);
-
+void sendData(unsigned int s1, unsigned int s2, unsigned int s3, unsigned int s4, unsigned int s5) {
+  byte buf[packetSize] = {255, s1, s2, s3, s4, s5, 0};
+  buf[packetSize - 1] = calculateCHKSum(buf, packetSize);
+  Serial.write(buf, packetSize);
 }
 
 byte calculateCHKSum(byte buf[], int len) {
   byte chk = 0;
-  for (int i = 1; i < len - 1; i++) {
+  for (int i = 1; i < len - 1; i++) { // avoid SOP and CHK
     chk += buf[i];
   }
   return chk;
