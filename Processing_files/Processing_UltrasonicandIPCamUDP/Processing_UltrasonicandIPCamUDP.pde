@@ -20,8 +20,9 @@ long lastRecieved = 0;
 boolean doSpin = false;
 long startSpinTime = 0;
 boolean doRampage = false;
-int spinDirection = 1;
+byte spinDirection = 1;
 long lastDirectionTime = 0;
+int allowNewTurnDirectionAfter = 6000;
 
 static final int medianCount = 3;
 static final int sensorCount = 5;
@@ -210,8 +211,28 @@ boolean spin(){
   return false; //continue
 }
 
+void calculateDirection() {
+  if(millis() > lastDirectionTime + allowNewTurnDirectionAfter){
+    if(medianDistance[0] != 0 && medianDistance[0] < medianDistance[sensorCount-1]){
+      spinDirection = 1;
+      
+    }
+    else if(medianDistance[sensorCount-1] != 0 && medianDistance[sensorCount-1] < medianDistance[0]){
+      spinDirection = -1;
+    }
+    else {
+      randomDirection();
+    }
+    /*
+    if(medianDistance[] < 40){
+      soun a lot!
+    }
+    */
+  }
+}
+
 void randomDirection(){
-    spinDirection = int(random(2));
+    spinDirection = byte(random(2));
     if(spinDirection == 0) spinDirection = -1;
     lastDirectionTime = millis();
 }
@@ -221,9 +242,9 @@ void rampage() {
   val[1] = 0;
   for (int i = 0; i < medianDistance.length; i++) {
     if (medianDistance[i] != 0 && medianDistance[i] < distanceThreshold) {
-      if(millis() > lastDirectionTime + 5000) randomDirection();
+      calculateDirection();
       val[0] = 0;
-      val[1] = 60;
+      val[1] = byte(60*spinDirection);
     }
   }
 }
