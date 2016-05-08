@@ -1,8 +1,8 @@
 package naRobot
 
 import (
-	"bytes"
-	"encoding/binary"
+	//"bytes"
+	//"encoding/binary"
 	"fmt"
 	"github.com/tarm/serial"
 	"io"
@@ -21,6 +21,7 @@ type Chair struct {
 	sensorData                            SensorData
 	cntr                                  uint64
 	naServer                             *NAServer
+	sendCounter							  uint8
 }
 
 type ChairResponse struct {
@@ -68,14 +69,14 @@ func InitChair(c *serial.Config , s *serial.Config) Chair {
 	}
 
 	naServer := InitNAServer()
-	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer}
+	chair := Chair{devicePath: c.Name, device: chairSerial, sensor: sensorSerial, chairMsgs: make(chan ChairResponse), naServer: &naServer, sendCounter: 0, servoX: 90, servoY: 40}
 	chair.sensorData.dist = make([]uint8,5,5)
 	return chair
 }
 
 func (c *Chair) Loop() {
 
-	go c.readLoop()
+	//go c.readLoop()
 	
 	senData := make(chan SensorData)
 	
@@ -91,21 +92,29 @@ func (c *Chair) Loop() {
 
 	for {
 		select {
-
+/*
 		case cRes := <-c.chairMsgs:
 			c.battery = cRes.battery
 			c.speed = cRes.speed
 			c.error = cRes.error
 			if c.cntr%5 == 1 {
 				c.naServer.send(&cRes)
-			}
+			}*/
 		case readSenData := <- senData:
 			//fmt.Print("Now i'm done with channeling, func go!")
 			c.handleSensorData(&readSenData)
 		case nEvent := <-netEventChan:
+			c.sendCounter = 0
 			c.handleNetEvent(&nEvent)
 		case <-ticker:
 			start := time.Now()
+			c.sendCounter++
+			if c.sendCounter > 100 {
+				c.x = 0
+				c.y = 0
+				c.servoX = 90
+				c.servoY = 40
+			}
 			c.sendData()
 			c.formatCliLine(start)
 		}
@@ -163,6 +172,7 @@ func (c *Chair) sensorRead(d chan SensorData) {
 func (c *Chair) handleNetEvent(e *NANetEvent) {
 	c.y = e.y
 	c.x = e.x
+	c.pendingCommand = e.command
 	c.servoX = e.servoX
 	c.servoY = e.servoY
 }
@@ -194,10 +204,9 @@ func calculateCheckSum(b []byte) byte {
 }
 
 func (c *Chair) formatCliLine(start time.Time) {
-	elapsed := time.Since(start)
-	fmt.Printf("\rS1:%d S2:%d S3:%d E:%d B:%d S:%d Y:%d X:%d Sx:%d Sy:%d C:%d elpsd: %v", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.error, c.battery, c.speed, c.y, c.x, c.servoX, c.servoY, c.cntr, elapsed)
+	fmt.Printf("\rS1:%d S2:%d S3:%d S4:%d S5:%d Y:%d X:%d Sx:%d Sy:%d    ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.sensorData.dist[3], c.sensorData.dist[4], c.y, c.x, c.servoX, c.servoY)
 }
-
+/*
 func (c *Chair) readLoop() {
 
 	input := make([]byte, 5, 5)
@@ -237,4 +246,4 @@ func (c *Chair) readLoop() {
 
 		c.chairMsgs <- cRes
 	}
-}
+}*/

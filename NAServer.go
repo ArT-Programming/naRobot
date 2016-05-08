@@ -13,6 +13,7 @@ type NAServer struct {
 
 type NANetEvent struct {
 	x, y int8
+	command uint8
 	servoX, servoY uint8
 }
 
@@ -45,13 +46,13 @@ func InitNAServer() NAServer {
 
 func (nas *NAServer) readLoop(c chan NANetEvent) {
 
-	input := make([]byte, 4, 4)
+	input := make([]byte, 5, 5)
 
 	for {
 
 		nBytes, err := nas.conn.Read(input)
 
-		if nBytes != 4 {
+		if nBytes != 5 {
 			continue
 		}
 
@@ -62,6 +63,8 @@ func (nas *NAServer) readLoop(c chan NANetEvent) {
 		binary.Read(byteReader, binary.LittleEndian, &event.x)
 
 		binary.Read(byteReader, binary.LittleEndian, &event.y)
+		
+		binary.Read(byteReader, binary.LittleEndian, &event.command)
 
 		binary.Read(byteReader, binary.LittleEndian, &event.servoX)
 
