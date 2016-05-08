@@ -9,7 +9,7 @@ void setup() {
   // Screen location
   surface.setLocation(200, 200);
 
-  camFeed = new CameraFrame(this, 320, 240, "camera feed" );
+  camFeed = new CameraFrame(this, 320, 240);
 
   startUDP();
   resetServos();

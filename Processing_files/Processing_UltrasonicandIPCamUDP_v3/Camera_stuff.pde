@@ -15,7 +15,7 @@ class CameraFrame extends PApplet {
   color red = color(255, 0, 0, 100);
   color green = color(0, 255, 0, 100);
 
-  public CameraFrame(PApplet _parent, int _w, int _h, String _name) {
+  public CameraFrame(PApplet _parent, int _w, int _h) {
     super();   
     parent = _parent;
     w=_w;

@@ -22,10 +22,10 @@ void keyPressed() {
     // for changing speed values
   case CODED:
     if (keyCode == UP) {
-      command = 2;
+      command = 4;
       break;
     } else if (keyCode == DOWN) {
-      command = 4;
+      command = 2;
       break;
     }
     break;
