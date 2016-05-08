@@ -12,6 +12,7 @@ byte val[] = new byte[2]; // values to send
 int timeBetweenSends = 10; // send every 10 ms (draw() is probably not that fast anyway, so just as often as we can)
 long lastSend = 0; // last time send
 long lastRecieved = 0;
+byte command = 0; 
 
 void startUDP() {
   println("Setting up UDP listener on Port ", listenPort);
@@ -24,9 +25,11 @@ void startUDP() {
 // send values as byte array via udp to the remote ip and port
 void sendData() {
   lastSend = millis();
-  byte[] b = {val[0], val[1], byte(servoVal[0]), byte(servoVal[1])};
+  byte[] b = {val[0], val[1], command, byte(servoVal[0]), byte(servoVal[1])};
   //println("Chair:" ,b[0],b[1], "\t\tServo:",b[2],b[3]);
   udp.send( b, remoteIP, remotePort );
+  
+  command = 0;
 }
 
 // this port recieved data from ip with port
