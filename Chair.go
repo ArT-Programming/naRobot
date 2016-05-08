@@ -1,8 +1,8 @@
 package naRobot
 
 import (
-	//"bytes"
-	//"encoding/binary"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"github.com/tarm/serial"
 	"io"
@@ -76,7 +76,7 @@ func InitChair(c *serial.Config , s *serial.Config) Chair {
 
 func (c *Chair) Loop() {
 
-	//go c.readLoop()
+	go c.readLoop()
 	
 	senData := make(chan SensorData)
 	
@@ -92,14 +92,14 @@ func (c *Chair) Loop() {
 
 	for {
 		select {
-/*
+
 		case cRes := <-c.chairMsgs:
 			c.battery = cRes.battery
 			c.speed = cRes.speed
 			c.error = cRes.error
 			if c.cntr%5 == 1 {
 				c.naServer.send(&cRes)
-			}*/
+			}
 		case readSenData := <- senData:
 			//fmt.Print("Now i'm done with channeling, func go!")
 			c.handleSensorData(&readSenData)
@@ -206,7 +206,7 @@ func calculateCheckSum(b []byte) byte {
 func (c *Chair) formatCliLine(start time.Time) {
 	fmt.Printf("\rS1:%d S2:%d S3:%d S4:%d S5:%d Y:%d X:%d Sx:%d Sy:%d    ", c.sensorData.dist[0], c.sensorData.dist[1], c.sensorData.dist[2], c.sensorData.dist[3], c.sensorData.dist[4], c.y, c.x, c.servoX, c.servoY)
 }
-/*
+
 func (c *Chair) readLoop() {
 
 	input := make([]byte, 5, 5)
@@ -246,4 +246,4 @@ func (c *Chair) readLoop() {
 
 		c.chairMsgs <- cRes
 	}
-}*/
+}
