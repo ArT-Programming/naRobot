@@ -34,6 +34,8 @@ class CameraFrame extends PApplet {
 
     opencv = new OpenCV(this, 320, 240);
     opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
+    frameRate(60);
+    
   }
 
   public boolean faceDetected() {
