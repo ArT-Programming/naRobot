@@ -1,26 +1,23 @@
 CameraFrame camFeed;
 
 void settings(){
+  // create window and setup a simple coordinate system
   size(500, 500);
 }
 
 void setup() {
   
-  // create window and setup a simple coordinate system
+  // Screen location
   surface.setLocation(200,200);
   
   camFeed = new CameraFrame(this, 320, 240, "camera feed" );
   
-  //startCamera("http://192.168.0.153:8080/video");
   startUDP();
   resetServos();
 }
 
 void draw() {
   background(150);
-
-  //drawCamera();
-  //boolean faceDetected = findFaces();
 
   drawSensorValues();
   drawCoordinateSystem();
