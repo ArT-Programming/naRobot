@@ -6,17 +6,17 @@ long lastDirectionTime = 0;
 int allowNewTurnDirectionAfter = 6000;
 byte rampageSpeed = -70;
 
-void stopMotors(){
-      val[0] = 0;
-      val[1] = 0;
+void stopMotors() {
+  val[0] = 0;
+  val[1] = 0;
 }
 
-boolean spin(){
-  if(!doSpin){
+boolean spin() {
+  if (!doSpin) {
     randomDirection();
     startSpinTime = millis();
   }
-  if(millis() < startSpinTime + 5000){
+  if (millis() < startSpinTime + 5000) {
     val[1] = byte(50 * spinDirection);
     val[0] = 0;
     return true;
@@ -25,29 +25,26 @@ boolean spin(){
 }
 
 void calculateDirection() {
-  if(millis() > lastDirectionTime + allowNewTurnDirectionAfter){
-    if(medianDistance[0] != 0 && medianDistance[0] < medianDistance[sensorCount-1]){
+  if (millis() > lastDirectionTime + allowNewTurnDirectionAfter) {
+    if (medianDistance[0] != 0 && medianDistance[0] < medianDistance[sensorCount-1]) {
       spinDirection = 1;
-      
-    }
-    else if(medianDistance[sensorCount-1] != 0 && medianDistance[sensorCount-1] < medianDistance[0]){
+    } else if (medianDistance[sensorCount-1] != 0 && medianDistance[sensorCount-1] < medianDistance[0]) {
       spinDirection = -1;
-    }
-    else {
+    } else {
       randomDirection();
     }
     /*
     if(medianDistance[] < 40){
-      soun a lot!
-    }
-    */
+     soun a lot!
+     }
+     */
   }
 }
 
-void randomDirection(){
-    spinDirection = byte(random(2));
-    if(spinDirection == 0) spinDirection = -1;
-    lastDirectionTime = millis();
+void randomDirection() {
+  spinDirection = byte(random(2));
+  if (spinDirection == 0) spinDirection = -1;
+  lastDirectionTime = millis();
 }
 
 void rampage() {

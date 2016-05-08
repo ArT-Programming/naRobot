@@ -28,10 +28,10 @@ class CameraFrame extends PApplet {
   }
 
   public void setup() {
-     surface.setLocation(700,200);
+    surface.setLocation(700, 200);
     mobCam = new IPCapture(this, "http://192.168.0.151:8080/video", "", "");
     mobCam.start();
-    
+
     opencv = new OpenCV(this, 320, 240);
     opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
   }
@@ -40,7 +40,7 @@ class CameraFrame extends PApplet {
 
     opencv.loadImage(mobCam);
     Rectangle[] faces = opencv.detect();
-    
+
     if (faces.length > 0) {
       float faceDist[] = new float[faces.length];
       PVector distVector[] = new PVector[faces.length];
@@ -81,6 +81,5 @@ class CameraFrame extends PApplet {
     }
     image(mobCam, 0, 0);
     iSeeFace = faceDetected();
-    
   }
 }

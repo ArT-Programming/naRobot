@@ -19,15 +19,15 @@ void keyPressed() {
   case ' ': 
     doRampage = !doRampage;
     break;
- /* // for changing speed values
-    case '1': 
-    val[] = 0;
-    break;
-  case '2': 
-    val[] = 2;
-    break;
-  case '3': 
-    val[] = 4;
-    break;*/
+    /* // for changing speed values
+     case '1': 
+     val[] = 0;
+     break;
+     case '2': 
+     val[] = 2;
+     break;
+     case '3': 
+     val[] = 4;
+     break;*/
   }
 }

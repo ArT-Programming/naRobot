@@ -1,19 +1,20 @@
 CameraFrame camFeed;
 
-void settings(){
+void settings() {
   // create window and setup a simple coordinate system
   size(500, 500);
 }
 
 void setup() {
-  
   // Screen location
-  surface.setLocation(200,200);
-  
+  surface.setLocation(200, 200);
+
   camFeed = new CameraFrame(this, 320, 240, "camera feed" );
-  
+
   startUDP();
   resetServos();
+
+  frameRate(120);
 }
 
 void draw() {
