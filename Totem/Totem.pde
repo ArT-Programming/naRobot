@@ -4,45 +4,51 @@ import processing.serial.*;
 
 Serial myPort;  // Create object from Serial class
 static final int servos = 2;
-int val[] = new int[servos];
+int val[] = new int[servos + 2];
 color c[] = new color[servos];
 int editColumn = -1;
 int prevColumn = 0;
 int prevVal = 0;
-int speed = 255;
+int speed = 100;
+
+int body = 0;
+int arm = 0;
 
 //********************** Setup *******************************
 
 void setup() 
 {
-   val[0] = 70;
-   val[1] = 90;
-   
-   
-  
+  val[0] = 70;
+  val[1] = 90;
+  arm = 0;
+  body = 0;
+
 
   rectMode(CORNERS); 
   size(1000, 720);
-  noLoop(); 
+  //noLoop(); 
 
   for (int i = 0; i < servos; i++) {
     c[i] = rndClr();
   }
   //*
-  String portName = Serial.list()[13];
+  String portName = Serial.list()[6];
   myPort = new Serial(this, portName, 115200);
   printArray(Serial.list());
   //*/
-  sendServoData();
+  sendData();
 }
 
 //********************** Draw ********************************
 
 void draw() {
-
+  UpdateVal();
+  
+ 
+  
   if (mousePressed) {
-    UpdateVal(); //hold 'c' for continous editing and 'a' for editing all motors
-    sendServoData();
+    //hold 'c' for continous editing and 'a' for editing all motors
+    
   }
 
   // Draw interface
@@ -53,6 +59,7 @@ void draw() {
     line(width/float(servos)*i, 0, width/float(servos)*i, height);
     rect(i*(width/float(servos)), height-(val[i]*4), (i+1)*(width/float(servos)), height);
   }
+   sendData();
 }
 
 //********************** 1st frame after mouse pressed *******
@@ -63,14 +70,20 @@ void mousePressed() {
     prevColumn = editColumn;
     prevVal = (height - mouseY) / 4;
   }
-  loop();
+  //loop();
 }
 
 //********************** 1st frame after mouse released ******
+void keyReleased(){
+    if (key == 'w') arm = 0; //moveArm(100);
+    else if (key == 's') arm = 0; //moveArm(100);
+    else if (key == 'a') body = 0; //moveBody(100);
+    else if (key == 'd') body = 0; // moveBody(100);
 
+}
 void mouseReleased() {
   editColumn = -1;
-  noLoop();
+  //noLoop();
 }
 
 //********************** Totem controls *********************
@@ -88,22 +101,7 @@ void moveBody(int speed) {
   myPort.write(values);
 }
 
-void keyPressed() {
-  switch(key) {
-  case 'w':
-    moveArm(speed);
-    break;
-  case 's': 
-    moveArm(-speed);
-    break;
-  case 'a': 
-    moveBody(speed);
-    break;
-  case 'd': 
-    moveBody(-speed);
-    break;
-  }
-}
+
 //********************** find which column mouse is on *******
 
 int mouseOnColumn(boolean includeOutsideBounds) {
@@ -156,7 +154,10 @@ void UpdateVal() {
         val[i] = (height - mouseY) / 4;
       }
       editColumn = mouseOnColumn(true);
-    }
+    } else if (key == 'w') arm = 255; // moveArm(speed + 100);
+    else if (key == 's') arm = -100;// moveArm(speed - 100);
+    else if (key== 'a') body = 100; //moveBody(speed + 100);
+    else if (key == 'd') body = -100;//moveBody(speed - 100);
   }
 
   // edit one column
@@ -193,12 +194,16 @@ void exit() {
 
   val[0] = 70;
   val[1] = 90;
-  sendServoData();
+  body = 0;
+  arm = 0;
+  sendData();
   super.exit();
 }
 
-void sendServoData(){
+void sendData() {
+  val[2] = arm; 
+  val[3] = body;
+   
   String values = "x" + join(nfc(val), ",");
   myPort.write(values);
-
 }

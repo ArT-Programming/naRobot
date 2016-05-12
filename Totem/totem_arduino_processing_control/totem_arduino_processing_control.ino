@@ -33,6 +33,9 @@ class MotorDriver
 };
 
 static const int n = 3; //number of servo motors
+static const int bytes = 4; //number of servo motors
+
+
 Servo servo[n];  // create servo object to control a servo
 
 MotorDriver arm(5, 6, 7);
@@ -56,48 +59,40 @@ void setup()
 void loop()
 {
   // Totem head control
-  int value[n];
-  digitalWrite(13, LOW);
-  if (Serial.available()) {
-    if (Serial.find("x")) {
-      digitalWrite(13, HIGH);
-      for (int i = 0; i < n - 1; i++) {
-        value[i] = Serial.parseInt();
-      }
-      servo[0].write(value[0]);
-      servo[1].write(value[1]);
-      servo[2].write(mirrorServo(value[1]));
+  int value[bytes];
+  // digitalWrite(13, LOW);
+  //if (Serial.available()) {
+  if (Serial.find("x")) {
+    //digitalWrite(13, HIGH);
+    for (int i = 0; i < bytes; i++) {
+      value[i] = Serial.parseInt();
+    }
+    servo[0].write(value[0]);
+    servo[1].write(value[1]);
+    servo[2].write(mirrorServo(value[1]));
+
+    //arm
+    if (value[2] == 0) {
+      arm.STOP();
+    }
+    else if (value[2] > 0) {
+      arm.goForwards(value[2]);
+    }
+    else if (value[2] < 0) {
+      arm.goBackwards(abs(value[2]));
     }
 
-    //Totem body control here
-    else if (Serial.find("a")) { // Move arm!
-      int moveDir = 0;
-      moveDir = Serial.parseInt();
 
-      if (moveDir == 0) {
-        arm.STOP();
-      }
-      else if (moveDir > 0) {
-        arm.goForwards(moveDir);
-      }
-      else if (moveDir < 0) {
-        arm.goBackwards(moveDir);
-      }
+    //value[3]; //body
+
+    if (value[3] == 0) {
+      body.STOP();
     }
-
-    else if (Serial.find("p")) { // Move body!
-      int moveDir = 0;
-      moveDir = Serial.parseInt();
-
-      if (moveDir == 0) {
-        body.STOP();
-      }
-      else if (moveDir > 0) {
-        body.goForwards(moveDir);
-      }
-      else if (moveDir < 0) {
-        body.goBackwards(moveDir);
-      }
+    else if (value[3] > 0) {
+      body.goForwards(value[3]);
+    }
+    else if (value[3] < 0) {
+      body.goBackwards(abs(value[3]));
     }
   }
 }
