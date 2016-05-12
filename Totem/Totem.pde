@@ -9,15 +9,17 @@ color c[] = new color[servos];
 int editColumn = -1;
 int prevColumn = 0;
 int prevVal = 0;
+int speed = 255;
 
 //********************** Setup *******************************
 
 void setup() 
 {
-  /*val[0] = 50;
-  val[1] = 0;
-  val[2] = 142;
-  val[3] = 80;*/
+   val[0] = 70;
+   val[1] = 90;
+   
+   
+  
 
   rectMode(CORNERS); 
   size(1000, 720);
@@ -27,10 +29,11 @@ void setup()
     c[i] = rndClr();
   }
   //*
-  String portName = Serial.list()[0];
-   myPort = new Serial(this, portName, 9600);
-   printArray(Serial.list());
-   //*/
+  String portName = Serial.list()[13];
+  myPort = new Serial(this, portName, 115200);
+  printArray(Serial.list());
+  //*/
+  sendServoData();
 }
 
 //********************** Draw ********************************
@@ -39,9 +42,7 @@ void draw() {
 
   if (mousePressed) {
     UpdateVal(); //hold 'c' for continous editing and 'a' for editing all motors
-    String values = "x" + join(nfc(val), ",");
-    //println(values);
-    myPort.write(values);
+    sendServoData();
   }
 
   // Draw interface
@@ -72,6 +73,37 @@ void mouseReleased() {
   noLoop();
 }
 
+//********************** Totem controls *********************
+void moveArm(int speed) {
+  // Send
+  String values = "a" + speed;
+  //println(values);
+  myPort.write(values);
+}
+
+void moveBody(int speed) {
+  // Send
+  String values = "p" + speed;
+  //println(values);
+  myPort.write(values);
+}
+
+void keyPressed() {
+  switch(key) {
+  case 'w':
+    moveArm(speed);
+    break;
+  case 's': 
+    moveArm(-speed);
+    break;
+  case 'a': 
+    moveBody(speed);
+    break;
+  case 'd': 
+    moveBody(-speed);
+    break;
+  }
+}
 //********************** find which column mouse is on *******
 
 int mouseOnColumn(boolean includeOutsideBounds) {
@@ -93,7 +125,7 @@ void UpdateVal() {
   if (keyPressed) {
     // continous update column
     if (key == 'c') {
-      
+
       int currColumn = mouseOnColumn(false);
       if (currColumn != -1) {
         int currVal = (height - mouseY) / 4;
@@ -103,16 +135,12 @@ void UpdateVal() {
           for (int i = 0; i <= columnSpan; i++) {
             val[i+prevColumn] = int((i/float(columnSpan))*currVal + (1-i/float(columnSpan))*prevVal);
           }
-        } 
-        
-        else if (currColumn < prevColumn) {
+        } else if (currColumn < prevColumn) {
           int columnSpan = prevColumn - currColumn;
           for (int i = columnSpan; i >= 0; i--) {
             val[i+currColumn] = int((i/float(columnSpan)) * prevVal + (1-i/float(columnSpan))*currVal);
           }
-        } 
-        
-        else {
+        } else {
           val[currColumn] = (height - mouseY) / 4;
         }
 
@@ -123,7 +151,7 @@ void UpdateVal() {
     }
 
     // edit all columns
-    else if (key == 'a') {
+    else if (key == 'x') {
       for (int i = 0; i < servos; i++) {
         val[i] = (height - mouseY) / 4;
       }
@@ -153,6 +181,24 @@ int clipValue(int value, int min, int max) {
 
 //********************** get a random color ******************
 
+
 color rndClr() {
   return color(random(255), random(255), random(255));
+}
+
+// send zero when program exits
+void exit() {
+
+  // back to position 
+
+  val[0] = 70;
+  val[1] = 90;
+  sendServoData();
+  super.exit();
+}
+
+void sendServoData(){
+  String values = "x" + join(nfc(val), ",");
+  myPort.write(values);
+
 }
