@@ -1,6 +1,7 @@
 import processing.serial.*;
 import ddf.minim.*;
 
+
 Minim minim;
 static final int tracks = 4;
 AudioPlayer player[] = new AudioPlayer[tracks];
@@ -9,6 +10,7 @@ boolean audioOn[] = new boolean[tracks];
 //********************** Objects and Variales ****************
 
 Serial myPort;  // Create object from Serial class
+Servo x, y;
 static final int servos = 2;
 int val[] = new int[servos + 2];
 color c[] = new color[servos];
@@ -19,7 +21,9 @@ int speed = 100;
 
 int body = 0;
 int arm = 0;
-
+long time = 0; 
+int markov = 0; 
+Status state = Status.sleep;
 //********************** Setup *******************************
 
 void setup() 
@@ -28,6 +32,9 @@ void setup()
   val[1] = 90;
   arm = 0;
   body = 0;
+
+  x = new Servo(70);
+  y = new Servo(90);
 
 
   rectMode(CORNERS); 
@@ -61,16 +68,67 @@ void setup()
 //********************** Draw ********************************
 
 void draw() {
-  UpdateVal();
+  //UpdateVal();
 
   // Draw interface
-  background(230);
-  stroke(100);
-  for (int i = 0; i < servos; i++) {
-    fill(c[i]);
-    line(width/float(servos)*i, 0, width/float(servos)*i, height);
-    rect(i*(width/float(servos)), height-(val[i]*4), (i+1)*(width/float(servos)), height);
+  /* background(0);
+   stroke(100);
+   for (int i = 0; i < servos; i++) {
+   fill(c[i]);
+   line(width/float(servos)*i, 0, width/float(servos)*i, height);
+   rect(i*(width/float(servos)), height-(val[i]*4), (i+1)*(width/float(servos)), height);
+   }*/
+  float r = random(0, 1);
+  switch(state) {
+    case sleep: 
+    if (x.MoveTo(70, 100) && y.MoveTo(142, 100)) {
+      state = Status.wake;
+    }
+    break;
+    
+  case wake: 
+    if (x.MoveTo(70, 100) && y.MoveTo(142, 100)) {
+      state = Status.lookLeft;
+    }
+    break;
+  case lookLeft: 
+    if (r < 0.3) { 
+      state = Status.nodYesUp;
+      break;
+    }
+    if (x.MoveTo(34, 100) && y.MoveTo(145, 100)) {
+      state = Status.lookRight;
+    }
+    break;
+  case lookRight: 
+    if (x.MoveTo(125, 100) && y.MoveTo(145, 100)) {
+      state = Status.lookLeft;
+    }
+    break;
+  case nodYesUp: 
+    if (r < 0.1) { 
+      state = Status.lookLeft;
+      break;
+    }
+    if (x.MoveTo(x.pos, 100) && y.MoveTo(130, 30)) {
+      state = Status.nodYesDown;
+    } 
+    break;
+  case nodYesDown: 
+    if (x.MoveTo(x.pos, 100) && y.MoveTo(150, 30)) {
+      state = Status.nodYesUp;
+    }
+  case jitter:
+    break;
+    case nodNoLeft: break;
+    case nodNoRight: break;
   }
+
+  /*if(millis() > time + 5000){
+   time = millis();
+   markov++: 
+   }*/
+
   sendData();
 }
 
@@ -97,7 +155,7 @@ void keyPressed() {
   else if (key == '1') audioOn[1] = !audioOn[1]; 
   else if (key == '2') audioOn[2] = !audioOn[2]; 
   else if (key == '3') audioOn[3] = !audioOn[3]; 
-  else if (key == ' ') {
+  else if (key == ' ') { 
     for (int i = 0; i < tracks; i++) {
       player[i].rewind();
     }
@@ -207,8 +265,9 @@ color rndClr() {
 void exit() {
 
   // back to position 
-  val[0] = 70;
-  val[1] = 90;
+  // val[0] = 70; val[1] = 90;
+  x.MoveTo(70); 
+  y.MoveTo(100);
   body = 0;
   arm = 0;
   sendData();
@@ -216,6 +275,11 @@ void exit() {
 }
 
 void sendData() {
+
+  //println("X value:  ", val[0], " Y value: ", val[1]);
+
+  val[0] = x.pos; 
+  val[1] = y.pos; // no mouse control
   val[2] = arm; 
   val[3] = body;
 
