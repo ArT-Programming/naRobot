@@ -2,7 +2,9 @@ import processing.serial.*;
 import ddf.minim.*;
 
 Minim minim;
-AudioPlayer player[] = new AudioPlayer[20];
+static final int tracks = 4;
+AudioPlayer player[] = new AudioPlayer[tracks];
+boolean audioOn[] = new boolean[tracks];
 
 //********************** Objects and Variales ****************
 
@@ -30,9 +32,13 @@ void setup()
 
   rectMode(CORNERS); 
   size(1000, 720, P3D);
- 
+
+
+
   minim = new Minim(this);
-  
+  for (int i = 0; i < tracks; i++ ) {
+    audioOn[i] = false;
+  }
   // loadFile will look in all the same places as loadImage does.
   // this means you can find files that are in the data folder and the 
   // sketch folder. you can also pass an absolute path, or a URL.
@@ -65,7 +71,7 @@ void draw() {
     line(width/float(servos)*i, 0, width/float(servos)*i, height);
     rect(i*(width/float(servos)), height-(val[i]*4), (i+1)*(width/float(servos)), height);
   }
-   sendData();
+  sendData();
 }
 
 //********************** 1st frame after mouse pressed *******
@@ -79,23 +85,33 @@ void mousePressed() {
 }
 
 //********************** 1st frame after mouse released ******
-void keyReleased(){
-    if (key == 'w') arm = 0; //moveArm(100);
-    else if (key == 's') arm = 0; //moveArm(100);
-    else if (key == 'a') body = 0; //moveBody(100);
-    else if (key == 'd') body = 0; // moveBody(100);
-    
-    else if (key == '0') player[0].pause(); 
-    else if (key == '1') player[1].pause();
-    else if (key == '2') player[2].pause();
-    else if (key == '3') player[3].pause();
+void keyReleased() {
+  if (key == 'w') arm = 0; //moveArm(100);
+  else if (key == 's') arm = 0; //moveArm(100);
+  else if (key == 'a') body = 0; //moveBody(100);
+  else if (key == 'd') body = 0; // moveBody(100);
 }
 
-void keyPressed(){
-  if (key == '0') player[0].play(); 
-    else if (key == '1') player[1].play();
-    else if (key == '2') player[2].play();
-    else if (key == '3') player[3].play();
+void keyPressed() {
+  if (key == '0') audioOn[0] = !audioOn[0]; 
+  else if (key == '1') audioOn[1] = !audioOn[1]; 
+  else if (key == '2') audioOn[2] = !audioOn[2]; 
+  else if (key == '3') audioOn[3] = !audioOn[3]; 
+  else if (key == ' ') {
+    for (int i = 0; i < tracks; i++) {
+      player[i].rewind();
+    }
+  }
+  /* else if (key == '4') audioOn[4] = !audioOn[4]; 
+   else if (key == '5') audioOn[5] = !audioOn[5]; 
+   else if (key == '6') audioOn[6] = !audioOn[6]; 
+   else if (key == '7') audioOn[7] = !audioOn[7]; 
+   else if (key == '8') audioOn[8] = !audioOn[8]; */
+
+  for (int i = 0; i < tracks; i++) {
+    if (audioOn[i]) player[i].play();
+    else player[i].pause();
+  }
 }
 
 void mouseReleased() {
@@ -202,7 +218,7 @@ void exit() {
 void sendData() {
   val[2] = arm; 
   val[3] = body;
-   
+
   String values = "x" + join(nfc(val), ",");
   myPort.write(values);
 }
